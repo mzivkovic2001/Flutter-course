@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 void main() => runApp(
-      MaterialApp(
-        home: Scaffold(
-          backgroundColor: Colors.blueGrey.shade900,
-          appBar: AppBar(
-            title: Text('Ask Me Anything'),
-            backgroundColor: Colors.blueGrey,
-          ),
-          body: BallPage(),
-        ),
-      ),
+      Bar()
     );
 
 class Bar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.blueGrey,
+        appBar: AppBar(
+          title: Text('Ask Me Anything'),
+          backgroundColor: Colors.blueGrey.shade900,
+        ),
+        body: BallPage(),
+      ),
+    );
   }
 }
 
