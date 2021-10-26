@@ -52,6 +52,7 @@ class CoinData {
       return jsonDecode(coinResponse.body);
     } else {
       print(coinResponse.statusCode);
+      print(coinResponse.reasonPhrase);
     }
   }
 }

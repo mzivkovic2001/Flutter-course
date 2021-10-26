@@ -12,8 +12,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = currenciesList[0];
-
-  List<String> exchangeRates = ['?', '?', '?'];
+  Map<int, String> exchangeRates;
 
   DropdownButton<String> getAndroidDropdown() {
     return DropdownButton<String>(
@@ -43,9 +42,9 @@ class _PriceScreenState extends State<PriceScreen> {
       itemExtent: 32.0,
       children: currenciesList
           .map((currencyText) => Text(
-        currencyText,
-        style: TextStyle(color: Colors.white),
-      ))
+                currencyText,
+                style: TextStyle(color: Colors.white),
+              ))
           .toList(),
       onSelectedItemChanged: (int selectedIndex) async {
         String currencyText = currenciesList.elementAt(selectedIndex);
@@ -65,42 +64,62 @@ class _PriceScreenState extends State<PriceScreen> {
     }
   }
 
-  Future<void> showExchangeRateForSelectedCurrency() async
-  {
+  Future<void> showExchangeRateForSelectedCurrency() async {
+    Map<int, String> cryptoRates = await getExchangeRates();
+    setState(() {
+      exchangeRates = cryptoRates;
+    });
+  }
+
+  Future<Map<int, String>> getExchangeRates() async {
+    Map<int, String> cryptoRates = {};
     for (int i = 0; i < cryptoList.length; i++) {
       CoinData coinData = new CoinData(selectedCurrency, cryptoList[i]);
       var decodedCoinData = await coinData.getCoinData();
-      setState(() {
-        if (decodedCoinData != null) {
-          double temp = decodedCoinData['rate'];
-          exchangeRates[i] = temp.toStringAsFixed(0);
-        }
-      });
+      if (decodedCoinData != null) {
+        double temp = decodedCoinData['rate'];
+        cryptoRates.update(i, (value) => temp.toStringAsFixed(0),
+            ifAbsent: () => temp.toStringAsFixed(0));
+      } else {
+        cryptoRates.update(i, (value) => '?', ifAbsent: () => '?');
+      }
     }
+    return cryptoRates;
   }
   
+  String getExchangeRateDescription(String crypto) {
+    if (exchangeRates != null && exchangeRates[cryptoList.indexOf(crypto)] != null ) {
+      return exchangeRates[cryptoList.indexOf(crypto)];
+    } else {
+      return '?';
+    }
+  }
+
   List<Widget> getCryptoCurrenciesInfo() {
-    return cryptoList.map((String crypto) => Padding(
-      padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-      child: Card(
-        color: Colors.lightBlueAccent,
-        elevation: 5.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-          child: Text(
-            '1 $crypto = ${exchangeRates[cryptoList.indexOf(crypto)]} $selectedCurrency',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20.0,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    )).toList();
+    return cryptoList
+        .map((String crypto) => Padding(
+              padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+              child: Card(
+                color: Colors.lightBlueAccent,
+                elevation: 5.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+                  child: Text(
+                    '1 $crypto = ${getExchangeRateDescription(crypto)} $selectedCurrency',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ))
+        .toList();
   }
 
   @override
@@ -120,7 +139,11 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          ...getCryptoCurrenciesInfo(),
+          // ...getCryptoCurrenciesInfo(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: getCryptoCurrenciesInfo(),
+          ),
           Container(
             height: 150.0,
             alignment: Alignment.center,
